@@ -1,0 +1,61 @@
+﻿@using BlazorWebApp.Services
+@inject SessionState Session
+@inject NavigationManager nav
+@inject IJSRuntime JS
+
+@if (Session.IsAuthenticated)
+{
+	<div class="top-row ps-3 navbar navbar-dark">
+		<div class="container-fluid">
+			<a class="navbar-brand" href="">BlazorWebApp</a>
+			<button title="Navigation menu" class="navbar-toggler" @onclick="ToggleNavMenu">
+				<span class="navbar-toggler-icon"></span>
+			</button>
+		</div>
+	</div>
+
+	<div class="@NavMenuCssClass nav-scrollable" @onclick="ToggleNavMenu">
+		<nav class="flex-column">
+			<div class="nav-item px-3">
+				<button id="btnLogout" class="nav-link btn btn-link text-danger" @onclick="CerrarSesion">
+					<span class="bi bi-box-arrow-right" aria-hidden="true"></span> Logout
+				</button>
+			</div>
+		</nav>
+	</div>
+}
+
+@code {
+	private bool collapseNavMenu = true;
+	private bool isLogoutTriggered = false;
+
+	private string? NavMenuCssClass => collapseNavMenu ? "collapse" : null;
+	protected override async Task OnInitializedAsync()
+	{
+		if (!Session.IsAuthenticated && !isLogoutTriggered)
+		{
+			isLogoutTriggered = true;
+			nav.NavigateTo("/login", forceLoad: false);
+		}
+
+		Session.OnChange += StateHasChanged;
+	}
+
+
+	private void ToggleNavMenu()
+	{
+		collapseNavMenu = !collapseNavMenu;
+	}
+
+	private async Task CerrarSesion()
+	{
+		Session.Logout();
+		//   await JS.InvokeVoidAsync("toastr.info", "Sesión cerrada automáticamente.");
+		nav.NavigateTo("/login", forceLoad: false);
+	}
+
+	public void Dispose()
+	{
+		Session.OnChange -= StateHasChanged;
+	}
+}

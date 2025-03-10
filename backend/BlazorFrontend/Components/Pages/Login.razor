@@ -1,0 +1,57 @@
+﻿@page "/login"
+@using Common
+@inject UsuarioService usuarioService
+@inject NavigationManager nav
+
+<EditForm Model="@model" OnValidSubmit="@IniciarSesion">
+    <DataAnnotationsValidator />
+    <div>
+        <small class="text-muted">
+            Escriba su cédula de identidad, correo electrónico o nombre de usuario.
+        </small>
+        <InputText @bind-Value="@model.Usuario" Class="form-control" Placeholder="Usuario" />
+        <small class="text-muted"> <ValidationMessage For="@(() => model.Usuario)" /></small>
+    </div>
+    <br />
+    <div>
+        <InputText Class="form-control" type="password" placeholder="Contraseña" @bind-Value="@model.Contrasena" />
+        <small class="text-muted"><ValidationMessage For="@(() => model.Contrasena)" /></small>
+    </div>
+
+    <div class="form-group">
+        <div class="form-check">
+            <input type="checkbox" class="form-check-input" id="dropdownCheck">
+            <label class="form-check-label" for="dropdownCheck">
+                <small class="text-muted">Recordar</small>
+            </label>
+        </div>
+    </div>
+
+
+    <button type="submit" class="btn btn-primary"><i class="bi bi-box-arrow-in-right"></i> Ingresar</button>
+
+    <br />
+
+    <a class="nav-link btn btn-link text-right text-primary" href="/@($"RegistroUsuario")">Deseo registrarme?</a>
+    <a class="nav-link btn btn-link text-right text-primary" href="/@($"RecuperarPassword")">Olvidé mi contraseña?</a>
+
+
+</EditForm>
+
+@code {
+    private LoginDto model { get; set; } = new LoginDto();
+
+    private async Task IniciarSesion()
+    {
+        var resultado = await usuarioService.Login(model.Usuario, model.Contrasena);
+        if (resultado)
+        {
+            nav.NavigateTo("/tareas");
+        }
+    }
+
+    private void IrARegistro()
+    {
+        nav.NavigateTo("/registrar");
+    }
+}

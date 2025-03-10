@@ -1,0 +1,39 @@
+﻿@page "/RegistrarUsuario"
+@using BlazorWebApp.Models
+@inject UsuarioService usuarioService
+@inject NavigationManager nav
+@inject IJSRuntime JS
+<h3>Registrar Usuario</h3>
+<hr />
+
+<div>
+    <label>Usuario:</label>
+    <input @bind="usuario.UsuarioNombre" class="form-control" />
+
+    <label>Email:</label>
+    <input @bind="usuario.Email" class="form-control" />
+
+    <label>Contraseña:</label>
+    <input type="password" @bind="usuario.PassHash" class="form-control" />
+
+    <button @onclick="Registrar" class="btn btn-success mt-2">Registrar</button>
+</div>
+
+@if (mensaje != null)
+{
+    <p class="text-info">@mensaje</p>
+}
+
+@code {
+    private Usuario usuario = new();
+    private string mensaje;
+
+    private async Task Registrar()
+    {
+        var resultado = await usuarioService.RegistrarUsuario(usuario);
+        mensaje = resultado ? "Registro exitoso, inicia sesión" : "Error al registrar usuario";
+
+        await JS.InvokeVoidAsync("alert", mensaje);
+        if (resultado) nav.NavigateTo("/login");
+    }
+}

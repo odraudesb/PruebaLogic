@@ -1,0 +1,27 @@
+
+CREATE DATABASE GestionTareas;
+GO
+
+USE GestionTareas;
+GO
+
+CREATE TABLE Usuarios (
+    UsuarioId INT IDENTITY(1,1) PRIMARY KEY,
+    UsuarioNombre NVARCHAR(100) NOT NULL UNIQUE,
+    Email NVARCHAR(255) NOT NULL UNIQUE,
+    PassHash NVARCHAR(255) NOT NULL,
+    FechaCreacion DATETIME DEFAULT GETDATE()
+);
+GO
+
+CREATE TABLE Tareas (
+    TareaId INT IDENTITY(1,1) PRIMARY KEY,
+    Titulo NVARCHAR(200) NOT NULL,
+    Descripcion NVARCHAR(MAX) NULL,
+    FechaCreacion DATETIME DEFAULT GETDATE(),
+    FechaVencimiento DATETIME NOT NULL,
+    Completada BIT DEFAULT 0,
+    UsuarioId INT NOT NULL,  
+    FOREIGN KEY (UsuarioId) REFERENCES Usuarios(UsuarioId) ON DELETE CASCADE
+);
+GO

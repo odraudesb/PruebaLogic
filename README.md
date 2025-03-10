@@ -1,0 +1,7 @@
+# PruebaTecnicaTareas,
+# la aplicacion esta junta el back y el fronted en la carpeta backend, esta hecha con blazor y una api con controller de conexion a base por defaultconexion,
+# los program.cs podria variar si no se puede levantar abria que verificar las url y por ende entrar en la configfuracion para levantar ambos proyectos,
+# El script para la creacion de la tablas y la base de datos esta en la carpeta database,
+# Actualmente la api tiene el puerto: http://localhost:5153/Api,
+# Actualmente la app web tiene el puerto: https://localhost:7169/login,
+# PruebaTecnicaTareas,

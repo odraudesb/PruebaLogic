@@ -1,0 +1,28 @@
+﻿@using BlazorFrontend.Components.Pages
+@using Microsoft.AspNetCore.Components.Authorization
+@inject NavigationManager nav
+@inject AuthenticationStateProvider AuthenticationStateProvider
+
+<CascadingAuthenticationState>
+    <Router AppAssembly="@typeof(Program).Assembly">
+        <Found Context="routeData">
+            <AuthorizeRouteView RouteData="@routeData" />
+        </Found>
+        <NotFound>
+            <RedirectToLogin />
+        </NotFound>
+    </Router>
+</CascadingAuthenticationState>
+
+@code {
+    protected override async Task OnInitializedAsync()
+    {
+        var authState = await AuthenticationStateProvider.GetAuthenticationStateAsync();
+        var usuario = authState.User;
+
+        if ((usuario == null || !usuario.Identity.IsAuthenticated) && !nav.Uri.Contains("/login"))
+        {
+            nav.NavigateTo("/login", forceLoad: true);
+        }
+    }
+}

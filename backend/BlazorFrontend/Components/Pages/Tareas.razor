@@ -1,0 +1,214 @@
+﻿@page "/tareas"
+@using BlazorFrontend.Models
+@inject TareaService tareaService
+
+<h3>Gestión de Tareas</h3>
+<hr />
+
+<button @onclick="NuevaTarea" class="btn btn-primary">Nueva Tarea</button>
+
+<table class="table mt-3">
+    <thead>
+        <tr>
+            <th>Título</th>
+            <th>Descripción</th>
+            <th>Fecha Vencimiento</th>
+            <th>Completada</th>
+            <th>Acciones</th>
+        </tr>
+    </thead>
+    <tbody>
+        @foreach (var tarea in tareas)
+        {
+            <tr>
+                <td>@tarea.Titulo</td>
+                <td>@tarea.Descripcion</td>
+                <td>@tarea.FechaVencimiento.ToShortDateString()</td>
+                <td>@(tarea.Completada ? "Sí" : "No")</td>
+                <td>
+                    <button @onclick="() => AbrirModalEdicion(tarea)" class="btn btn-warning">Editar</button>
+                    <button @onclick="() => ConfirmarEliminar(tarea.TareaId)" class="btn btn-danger">Eliminar</button>
+                </td>
+            </tr>
+        }
+    </tbody>
+</table>
+
+<!-- MODAL DE CREACIÓN/EDICIÓN -->
+@if (mostrarModal)
+{
+    <div class="modal fade show d-block" tabindex="-1">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">@tituloModal</h5>
+                    <button type="button" class="close" @onclick="CerrarModal">&times;</button>
+                </div>
+                <div class="modal-body">
+                    <label>Título:</label>
+                    <input @bind="tareaSeleccionada.Titulo" class="form-control" />
+
+                    <label>Descripción:</label>
+                    <textarea @bind="tareaSeleccionada.Descripcion" class="form-control"></textarea>
+
+                    <label>Fecha Vencimiento:</label>
+                    <input type="date" @bind="tareaSeleccionada.FechaVencimiento" class="form-control" />
+
+                    <label>Completada:</label>
+                    <input type="checkbox" @bind="tareaSeleccionada.Completada" />
+                </div>
+                <div class="modal-footer">
+                    <button class="btn btn-primary" @onclick="GuardarCambios">Guardar</button>
+                    <button class="btn btn-secondary" @onclick="CerrarModal">Cancelar</button>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="modal-backdrop fade show"></div>
+}
+
+<!-- MODAL DE CONFIRMACIÓN DE ELIMINACIÓN -->
+@if (mostrarConfirmacion)
+{
+    <div class="modal fade show d-block" tabindex="-1">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">Confirmar Eliminación</h5>
+                    <button type="button" class="close" @onclick="CerrarConfirmacion">&times;</button>
+                </div>
+                <div class="modal-body">
+                    <p>¿Seguro que deseas eliminar esta tarea?</p>
+                </div>
+                <div class="modal-footer">
+                    <button class="btn btn-danger" @onclick="EliminarTarea">Eliminar</button>
+                    <button class="btn btn-secondary" @onclick="CerrarConfirmacion">Cancelar</button>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="modal-backdrop fade show"></div>
+}
+
+@code {
+    private List<Tarea> tareas = new();
+    private bool mostrarModal = false;
+    private bool mostrarConfirmacion = false;
+    private Tarea tareaSeleccionada = new();
+    private int tareaAEliminarId;
+    private string tituloModal = "Nueva Tarea";
+
+    protected override async Task OnInitializedAsync()
+    {
+        tareas = await tareaService.ObtenerTareas();
+    }
+
+    private void NuevaTarea()
+    {
+        tareaSeleccionada = new Tarea
+            {
+                FechaVencimiento = DateTime.Today.AddDays(1)
+            };
+        tituloModal = "Nueva Tarea";
+        mostrarModal = true;
+    }
+
+    private void AbrirModalEdicion(Tarea tarea)
+    {
+        tareaSeleccionada = new Tarea
+            {
+                TareaId = tarea.TareaId,
+                Titulo = tarea.Titulo,
+                Descripcion = tarea.Descripcion,
+                FechaVencimiento = tarea.FechaVencimiento,
+                Completada = tarea.Completada
+            };
+        tituloModal = "Editar Tarea";
+        mostrarModal = true;
+    }
+
+    private async Task GuardarCambios()
+    {
+        bool resultado;
+        if (tareaSeleccionada.TareaId == 0)
+        {
+            resultado = await tareaService.CrearTarea(tareaSeleccionada);
+        }
+        else
+        {
+            resultado = await tareaService.EditarTarea(tareaSeleccionada);
+        }
+
+        if (resultado)
+        {
+            tareas = await tareaService.ObtenerTareas();
+            CerrarModal();
+        }
+    }
+
+    private void CerrarModal()
+    {
+        mostrarModal = false;
+    }
+
+    private void ConfirmarEliminar(int id)
+    {
+        tareaAEliminarId = id;
+        mostrarConfirmacion = true;
+    }
+
+    private async Task EliminarTarea()
+    {
+        var resultado = await tareaService.EliminarTarea(tareaAEliminarId);
+        if (resultado)
+        {
+            tareas = await tareaService.ObtenerTareas();
+        }
+        CerrarConfirmacion();
+    }
+
+    private void CerrarConfirmacion()
+    {
+        mostrarConfirmacion = false;
+    }
+}
+
+<style>
+    .modal {
+        display: block;
+        background: rgba(0, 0, 0, 0.5);
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        z-index: 1050;
+    }
+
+    .modal-dialog {
+        max-width: 500px;
+        margin: 10% auto;
+    }
+
+    .modal-content {
+        background: white;
+        padding: 15px;
+        border-radius: 8px;
+    }
+
+    .modal-backdrop {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: rgba(0, 0, 0, 0.5);
+    }
+
+    .close {
+        background: none;
+        border: none;
+        font-size: 20px;
+        cursor: pointer;
+    }
+</style>
